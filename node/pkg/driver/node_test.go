@@ -19,9 +19,7 @@ package driver_test
 import (
 	"context"
 	"fmt"
-	"github.com/ibm/ibm-block-csi-driver/node/pkg/driver/device_connectivity"
 	"path"
-	"path/filepath"
 	"reflect"
 	"testing"
 
