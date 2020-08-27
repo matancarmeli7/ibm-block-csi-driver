@@ -152,8 +152,7 @@ class SVCArrayMediator(ArrayMediatorAbstract):
         try:
             self.client = connect(self.endpoint, username=self.user,
                                   password=self.password)
-        except (svc_errors.IncorrectCredentials,
-                svc_errors.StorageArrayClientException):
+        except svc_errors.IncorrectCredentials:
             raise controller_errors.CredentialsError(self.endpoint)
 
     def disconnect(self):

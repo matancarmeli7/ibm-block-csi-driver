@@ -232,7 +232,7 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
                 logger.warning("volume id is invalid. error : {}".format(ex))
                 return csi_pb2.DeleteVolumeResponse()
 
-            with ArrayConnectionManager(user, password, array_addresses) as array_mediator:
+            with ArrayConnectionManager(user, password, array_addresses, array_type) as array_mediator:
                 logger.debug(array_mediator)
 
                 try:
@@ -286,7 +286,7 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
             logger.debug("node name for this publish operation is : {0}".format(node_name))
 
             user, password, array_addresses = utils.get_array_connection_info_from_secret(request.secrets)
-            with ArrayConnectionManager(user, password, array_addresses) as array_mediator:
+            with ArrayConnectionManager(user, password, array_addresses, array_type) as array_mediator:
                 lun, connectivity_type, array_initiators = array_mediator.map_volume_by_initiators(vol_id,
                                                                                                    initiators)
             logger.info("finished ControllerPublishVolume")
@@ -354,7 +354,7 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
 
             user, password, array_addresses = utils.get_array_connection_info_from_secret(request.secrets)
 
-            with ArrayConnectionManager(user, password, array_addresses) as array_mediator:
+            with ArrayConnectionManager(user, password, array_addresses, array_type) as array_mediator:
                 array_mediator.unmap_volume_by_initiators(vol_id, initiators)
 
             logger.info("finished ControllerUnpublishVolume")
@@ -490,7 +490,7 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
                 logger.warning("volume id is invalid. error : {}".format(ex))
                 return csi_pb2.DeleteVolumeResponse()
 
-            with ArrayConnectionManager(user, password, array_addresses) as array_mediator:
+            with ArrayConnectionManager(user, password, array_addresses, array_type) as array_mediator:
                 logger.debug(array_mediator)
                 try:
                     array_mediator.delete_snapshot(snapshot_id)
