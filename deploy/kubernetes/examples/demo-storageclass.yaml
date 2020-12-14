@@ -13,12 +13,12 @@ parameters:
   SpaceEfficiency: deduplicated   # Optional.
   pool: <POOL_NAME>
 
-  csi.storage.k8s.io/provisioner-secret-name: demo-secret
-  csi.storage.k8s.io/provisioner-secret-namespace: default
-  csi.storage.k8s.io/controller-publish-secret-name: demo-secret
-  csi.storage.k8s.io/controller-publish-secret-namespace: default
-  csi.storage.k8s.io/controller-expand-secret-name: demo-secret
-  csi.storage.k8s.io/controller-expand-secret-namespace: default
+  csi.storage.k8s.io/provisioner-secret-name: <ARRAY_SECRET>
+  csi.storage.k8s.io/provisioner-secret-namespace: <ARRAY_SECRET_NAMESPACE>
+  csi.storage.k8s.io/controller-publish-secret-name: <ARRAY_SECRET>
+  csi.storage.k8s.io/controller-publish-secret-namespace: <ARRAY_SECRET_NAMESPACE>
+  csi.storage.k8s.io/controller-expand-secret-name: <ARRAY_SECRET>
+  csi.storage.k8s.io/controller-expand-secret-namespace: <ARRAY_SECRET_NAMESPACE>
 
 allowVolumeExpansion: true
 
