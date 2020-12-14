@@ -1,11 +1,17 @@
+#################################################
+# Storage class template for IBM Block CSI Driver
+# All the <VALUE> fields must be set
+#################################################
+
+
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
-  name: demo-storageclass
+  name: <NAME>
 provisioner: block.csi.ibm.com
 parameters:
   SpaceEfficiency: deduplicated   # Optional.
-  pool: demo-pool
+  pool: <POOL_NAME>
 
   csi.storage.k8s.io/provisioner-secret-name: demo-secret
   csi.storage.k8s.io/provisioner-secret-namespace: default
@@ -14,6 +20,7 @@ parameters:
   csi.storage.k8s.io/controller-expand-secret-name: demo-secret
   csi.storage.k8s.io/controller-expand-secret-namespace: default
 
-  csi.storage.k8s.io/fstype: xfs   # Optional. Values ext4\xfs. The default is ext4.
-  volume_name_prefix: demoPVC      # Optional.
 allowVolumeExpansion: true
+
+#   csi.storage.k8s.io/fstype: xfs   # Optional. Values ext4\xfs. The default is ext4.
+#   volume_name_prefix: <PREFIX>      # Optional.
