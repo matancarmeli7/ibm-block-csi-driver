@@ -396,6 +396,7 @@ func (d *NodeService) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 	}
 	if isFSVolume {
 		fsType := volumeCap.GetMount().FsType
+		logger.Debugf("Reading stage info file detail : {%v}", infoMap)
 		err = d.mountFileSystemVolume(mpathDevice, targetPath, fsType, isTargetPathExists)
 	} else {
 		err = d.mountRawBlockVolume(mpathDevice, targetPath, isTargetPathExists)
