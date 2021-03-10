@@ -430,9 +430,10 @@ func (d *NodeService) mountFileSystemVolume(mpathDevice string, targetPath strin
 		return err
 	}
 	//here to check stageInfo.json and multipath -ll for actual devices
-	sysDevices, err := d.NodeUtils.GetSysDevicesFromMpath(mpathDevice)
+	splitdev := strings.Split(mpathDevice, "/")
+	sysDevices, err := d.NodeUtils.GetSysDevicesFromMpath(splitdev[2])
 	args := []string{"-ll"}
-	d.executer.ExecuteWithTimeout(TimeOutMultipathdCmd, multipathdCmd, args)
+	d.executer.ExecuteWithTimeout(TimeOutMultipathdCmd, "multipath", args)
 	logger.Debugf("before format check, sysDevices: %v)", sysDevices)
 	if existingFormat == "" {
 		d.NodeUtils.FormatDevice(mpathDevice, fsType)
