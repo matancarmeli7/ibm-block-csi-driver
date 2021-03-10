@@ -160,8 +160,8 @@ func (d *NodeService) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 	stageInfoPath := path.Join(stagingPath, StageInfoFilename)
 	stageInfo := make(map[string]string)
 	baseDevice := path.Base(device)
-	stageInfo["mpathDevice"] = baseDevice //this should return the mathhh for example
-	sysDevices, err := d.NodeUtils.GetSysDevicesFromMpath(baseDevice)
+	stageInfo["mpathDevice"] = baseDevice                             //this should return the mathhh for example
+	sysDevices, err := d.NodeUtils.GetSysDevicesFromMpath(baseDevice) //here here here ***
 	if err != nil {
 		logger.Errorf("Error while trying to get sys devices : {%v}", err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
@@ -428,6 +428,11 @@ func (d *NodeService) mountFileSystemVolume(mpathDevice string, targetPath strin
 		logger.Errorf("Could not determine if disk {%v} is formatted, error: %v", mpathDevice, err)
 		return err
 	}
+	//here to check stageInfo.json and multipath -ll for actual devices
+	sysDevices, err := d.NodeUtils.GetSysDevicesFromMpath(mpathDevice)
+	args := []string{"-ll"}
+	d.executer.ExecuteWithTimeout(TimeOutMultipathdCmd, multipathdCmd, args)
+	logger.Debugf("before format check, sysDevices: %v)", sysDevices)
 	if existingFormat == "" {
 		d.NodeUtils.FormatDevice(mpathDevice, fsType)
 	}
