@@ -396,7 +396,7 @@ func (d *NodeService) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 	}
 	if isFSVolume {
 		fsType := volumeCap.GetMount().FsType
-		logger.Debugf("Reading stage info file detail : {%v}", infoMap)
+		logger.Debugf("TEST Reading stage info file detail : {%v}", infoMap)
 		err = d.mountFileSystemVolume(mpathDevice, targetPath, fsType, isTargetPathExists)
 	} else {
 		err = d.mountRawBlockVolume(mpathDevice, targetPath, isTargetPathExists)
@@ -434,9 +434,11 @@ func (d *NodeService) mountFileSystemVolume(mpathDevice string, targetPath strin
 	sysDevices, err := d.NodeUtils.GetSysDevicesFromMpath(splitdev[2])
 	args := []string{"-ll"}
 	d.executer.ExecuteWithTimeout(TimeOutMultipathdCmd, "multipath", args)
-	logger.Debugf("before format check, sysDevices: %v)", sysDevices)
+	logger.Debugf("TEST before format check, sysDevices: %v)", sysDevices)
 	if existingFormat == "" {
 		d.NodeUtils.FormatDevice(mpathDevice, fsType)
+	} else {
+		logger.Debugf("TEST no formatting done.")
 	}
 
 	var mountOptions []string
