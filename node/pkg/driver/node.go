@@ -433,7 +433,7 @@ func (d *NodeService) mountFileSystemVolume(mpathDevice string, targetPath strin
 	}
 	//here to check stageInfo.json and multipath -ll for actual devices
 	args := []string{"-ll"}
-	dargs := []string{"show", "maps", "raw", "format", "\"", "%d" + MpathdSeparator + "%w", "\""}
+	dargs := []string{"show", "maps", "raw", "format", "\"", "%d" + "," + "%w", "\""}
 	out, err := d.executer.ExecuteWithTimeout(TimeOutMultipathdCmd, multipathdCmd, dargs)
 	scanner := bufio.NewScanner(strings.NewReader(out))
 	var b bytes.Buffer
