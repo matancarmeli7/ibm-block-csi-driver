@@ -435,7 +435,7 @@ func (d *NodeService) mountFileSystemVolume(mpathDevice string, targetPath strin
 	args := []string{"-ll"}
 	dargs := []string{"show", "maps", "raw", "format", "\"", "%d" + "," + "%w", "\""}
 	out, err := d.executer.ExecuteWithTimeout(TimeOutMultipathdCmd, multipathdCmd, dargs)
-	scanner := bufio.NewScanner(strings.NewReader(out))
+	scanner := bufio.NewScanner(strings.NewReader(string(out)))
 	var b bytes.Buffer
 	for scanner.Scan() {
 		deviceLine := scanner.Text()
