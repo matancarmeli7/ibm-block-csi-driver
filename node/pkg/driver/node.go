@@ -17,6 +17,8 @@
 package driver
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/container-storage-interface/spec/lib/go/csi"
@@ -430,11 +432,22 @@ func (d *NodeService) mountFileSystemVolume(mpathDevice string, targetPath strin
 		return err
 	}
 	//here to check stageInfo.json and multipath -ll for actual devices
-	splitdev := strings.Split(mpathDevice, "/")
-	sysDevices, err := d.NodeUtils.GetSysDevicesFromMpath(splitdev[2])
 	args := []string{"-ll"}
+	dargs := []string{"show", "maps", "raw", "format", "\"", "%d" + MpathdSeparator + "%w", "\""}
+	out, err := d.executer.ExecuteWithTimeout(TimeOutMultipathdCmd, multipathdCmd, dargs)
+	scanner := bufio.NewScanner(strings.NewReader(out))
+	var b bytes.Buffer
+	for scanner.Scan() {
+		deviceLine := scanner.Text()
+		lineParts := strings.Split(deviceLine, ",")
+		dm := lineParts[0]
+		sysDevices, err := d.NodeUtils.GetSysDevicesFromMpath(dm)
+		if err == nil {
+			b.WriteString(sysDevices)
+		}
+	}
 	d.executer.ExecuteWithTimeout(TimeOutMultipathdCmd, "multipath", args)
-	logger.Debugf("TEST before format check, sysDevices: %v)", sysDevices)
+	logger.Debugf("TEST before format check, sysDevices: %v)", b.String())
 	if existingFormat == "" {
 		d.NodeUtils.FormatDevice(mpathDevice, fsType)
 	} else {
