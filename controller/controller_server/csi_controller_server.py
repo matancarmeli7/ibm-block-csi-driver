@@ -47,6 +47,7 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
     def CreateVolume(self, request, context):  # pylint: disable=too-many-branches
         set_current_thread_name(request.name)
         logger.info("create volume")
+        logger.info("request: {}".format(request))
         try:
             utils.validate_create_volume_request(request)
         except ValidationException as ex:
