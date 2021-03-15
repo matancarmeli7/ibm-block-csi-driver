@@ -731,7 +731,8 @@ func (d *NodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 	logger.Debugf("node id is : %s", nodeId)
 
 	return &csi.NodeGetInfoResponse{
-		NodeId: nodeId,
+		NodeId:             nodeId,
+		AccessibleTopology: &csi.Topology{Segments: map[string]string{"region": "R1", "zone": nodeId}},
 	}, nil
 }
 
