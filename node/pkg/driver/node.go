@@ -730,7 +730,7 @@ func (d *NodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 
 	logger.Debugf("node id is : %s", nodeId)
 
-    runes := []rune(nodeId)
+	runes := []rune(nodeId)
 	result := 0
 	for i := 0; i < len(runes); i++ {
 		result += int(runes[i])
