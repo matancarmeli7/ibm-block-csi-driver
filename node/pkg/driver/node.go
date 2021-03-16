@@ -441,7 +441,7 @@ func (d *NodeService) mountFileSystemVolume(mpathDevice string, targetPath strin
 		deviceLine := scanner.Text()
 		lineParts := strings.Split(deviceLine, ",")
 		dm := lineParts[0]
-		sysDevices, err := d.NodeUtils.GetSysDevicesFromMpath(dm)
+		sysDevices, err := d.NodeUtils.GetSysDevicesFromMpath(strings.TrimSpace(dm))
 		if err == nil {
 			b.WriteString(sysDevices)
 		}
