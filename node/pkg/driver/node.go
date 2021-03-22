@@ -18,7 +18,6 @@ package driver
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"fmt"
 	"github.com/container-storage-interface/spec/lib/go/csi"
@@ -436,21 +435,21 @@ func (d *NodeService) mountFileSystemVolume(mpathDevice string, targetPath strin
 	dargs := []string{"show", "maps", "raw", "format", "\"", "%d" + "," + "%w", "\""}
 	out, err := d.executer.ExecuteWithTimeout(TimeOutMultipathdCmd, multipathdCmd, dargs)
 	scanner := bufio.NewScanner(strings.NewReader(string(out)))
-	var b bytes.Buffer
 	for scanner.Scan() {
 		deviceLine := scanner.Text()
 		lineParts := strings.Split(deviceLine, ",")
-		dm := lineParts[0]
-		sysDevices, err := d.NodeUtils.GetSysDevicesFromMpath(strings.TrimSpace(dm))
-		if err == nil {
-			b.WriteString(sysDevices)
+		dm := strings.TrimSpace(lineParts[0])
+		_, err := d.NodeUtils.GetSysDevicesFromMpath(dm)
+		if err != nil {
+			logger.Errorf("Error while trying to get sys devices : {%v}", err.Error())
 		}
 	}
 	d.executer.ExecuteWithTimeout(TimeOutMultipathdCmd, "multipath", args)
-	logger.Debugf("TEST before format check, sysDevices: %v)", b.String())
 	if existingFormat == "" {
 		d.NodeUtils.FormatDevice(mpathDevice, fsType)
 	} else {
+		args := []string{"-p"}
+		d.executer.ExecuteWithTimeout(TimeOutMultipathdCmd, "multipath", args)
 		logger.Debugf("TEST no formatting done.")
 	}
 

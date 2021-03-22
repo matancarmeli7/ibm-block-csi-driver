@@ -218,13 +218,13 @@ func (n NodeUtils) GetSysDevicesFromMpath(device string) (string, error) {
 		return "", err
 	}
 
-	logger.Debugf("found slaves : {%v}", slaves)
-
 	var slavesNames []string
 	for _, slave := range slaves {
 		slavesNames = append(slavesNames, slave.Name())
 	}
 	slavesString := strings.Join(slavesNames, ",")
+
+	logger.Debugf("for device {%v} found slaves : {%v}", device, slavesString)
 
 	return slavesString, nil
 }
