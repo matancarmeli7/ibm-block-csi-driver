@@ -1,6 +1,7 @@
 ControllerGetCapabilities
 CreateVolume
 DeleteVolume
+volume lifecycle
 ExpandVolume
 NodeGetCapabilities
 NodeGetInfo
