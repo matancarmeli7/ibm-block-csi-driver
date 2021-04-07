@@ -730,16 +730,16 @@ func (d *NodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 
 	logger.Debugf("node id is : %s", nodeId)
 
-	runes := []rune(nodeId)
-	result := 0
-	for i := 0; i < len(runes); i++ {
-		result += int(runes[i])
-	}
-	zone := fmt.Sprintf("Z%v", result)
+	//runes := []rune(nodeId)
+	//result := 0
+	//for i := 0; i < len(runes); i++ {
+	//	result += int(runes[i])
+	//}
+	//zone := fmt.Sprintf("Z%v", result)
 
 	return &csi.NodeGetInfoResponse{
 		NodeId:             nodeId,
-		AccessibleTopology: &csi.Topology{Segments: map[string]string{"region": "R1", "zone": zone}},
+		//AccessibleTopology: &csi.Topology{Segments: map[string]string{"region": "R1", "zone": zone}},
 	}, nil
 }
 
