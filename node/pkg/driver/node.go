@@ -26,6 +26,8 @@ import (
 	"github.com/ibm/ibm-block-csi-driver/node/pkg/driver/executer"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/utils/mount"
 	"path"
 	"strings"
@@ -55,6 +57,10 @@ var (
 	}
 
 	IscsiFullPath = "/host/etc/iscsi/initiatorname.iscsi"
+	listOpts      = metav1.ListOptions{}
+	getOpts       = metav1.GetOptions{}
+	createOpts    = metav1.CreateOptions{}
+	updateOpts    = metav1.UpdateOptions{}
 )
 
 const (
@@ -81,6 +87,7 @@ type NodeService struct {
 	VolumeIdLocksMap            SyncLockInterface
 	OsDeviceConnectivityMapping map[string]device_connectivity.OsDeviceConnectivityInterface
 	OsDeviceConnectivityHelper  device_connectivity.OsDeviceConnectivityHelperScsiGenericInterface
+	kubeClient                  kubernetes.Interface
 }
 
 // newNodeService creates a new node service
@@ -704,7 +711,8 @@ func (d *NodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 	var iscsiIQN string
 	var fcWWNs []string
 	var err error
-
+	listOpts.LabelSelector = fmt.Sprintf("kubernetes.io/hostname=%s", d.Hostname)
+	nodes, err := d.kubeClient.CoreV1().Nodes().List(ctx, listOpts)
 	fcExists := d.NodeUtils.IsPathExists(FCPath)
 	if fcExists {
 		fcWWNs, err = d.NodeUtils.ParseFCPorts()
@@ -729,17 +737,23 @@ func (d *NodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 	}
 
 	logger.Debugf("node id is : %s", nodeId)
+	logger.Debugf("k id is : %s", nodeId)
+	runes := []rune(nodeId)
+	result := 0
+	for i := 0; i < len(runes); i++ {
+		result += int(runes[i])
+	}
+	zone := fmt.Sprintf("Z%v", result)
 
-	//runes := []rune(nodeId)
-	//result := 0
-	//for i := 0; i < len(runes); i++ {
-	//	result += int(runes[i])
-	//}
-	//zone := fmt.Sprintf("Z%v", result)
+	if nodes != nil {
+		node := nodes.Items[0]
+		logger.Debugf(node.Name)
+		logger.Debugf("%v", node.Labels)
+	}
 
 	return &csi.NodeGetInfoResponse{
-		NodeId: nodeId,
-		//AccessibleTopology: &csi.Topology{Segments: map[string]string{"region": "R1", "zone": zone}},
+		NodeId:             nodeId,
+		AccessibleTopology: &csi.Topology{Segments: map[string]string{"zone": zone}},
 	}, nil
 }
 
