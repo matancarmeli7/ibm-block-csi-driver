@@ -87,7 +87,6 @@ type NodeService struct {
 	VolumeIdLocksMap            SyncLockInterface
 	OsDeviceConnectivityMapping map[string]device_connectivity.OsDeviceConnectivityInterface
 	OsDeviceConnectivityHelper  device_connectivity.OsDeviceConnectivityHelperScsiGenericInterface
-	kubeClient                  kubernetes.Interface
 }
 
 // newNodeService creates a new node service
@@ -711,8 +710,10 @@ func (d *NodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 	var iscsiIQN string
 	var fcWWNs []string
 	var err error
+	clientConfig, err := config.GetConfig()
+	kubeClient, err := kubernetes.NewForConfig(clientConfig)
 	listOpts.LabelSelector = fmt.Sprintf("kubernetes.io/hostname=%s", d.Hostname)
-	nodes, err := d.kubeClient.CoreV1().Nodes().List(ctx, listOpts)
+	nodes, err := kubeClient.CoreV1().Nodes().List(ctx, listOpts)
 	fcExists := d.NodeUtils.IsPathExists(FCPath)
 	if fcExists {
 		fcWWNs, err = d.NodeUtils.ParseFCPorts()
