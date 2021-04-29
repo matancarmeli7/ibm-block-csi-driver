@@ -58,9 +58,9 @@ var (
 
 	IscsiFullPath = "/host/etc/iscsi/initiatorname.iscsi"
 	listOpts      = metav1.ListOptions{}
-	getOpts       = metav1.GetOptions{}
-	createOpts    = metav1.CreateOptions{}
-	updateOpts    = metav1.UpdateOptions{}
+	//getOpts       = metav1.GetOptions{}
+	//createOpts    = metav1.CreateOptions{}
+	//updateOpts    = metav1.UpdateOptions{}
 )
 
 const (
