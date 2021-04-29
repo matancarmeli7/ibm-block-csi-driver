@@ -26,11 +26,12 @@ import (
 	"github.com/ibm/ibm-block-csi-driver/node/pkg/driver/executer"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
+	//metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	//"k8s.io/client-go/kubernetes"
 	"k8s.io/utils/mount"
+	//"k8s.io/client-go/tools/clientcmd"
 	"path"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	//"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"strings"
 )
 
@@ -58,7 +59,7 @@ var (
 	}
 
 	IscsiFullPath = "/host/etc/iscsi/initiatorname.iscsi"
-	listOpts      = metav1.ListOptions{}
+	//listOpts      = metav1.ListOptions{}
 	//getOpts       = metav1.GetOptions{}
 	//createOpts    = metav1.CreateOptions{}
 	//updateOpts    = metav1.UpdateOptions{}
@@ -711,10 +712,11 @@ func (d *NodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 	var iscsiIQN string
 	var fcWWNs []string
 	var err error
-	clientConfig, err := config.GetConfig()
-	kubeClient, err := kubernetes.NewForConfig(clientConfig)
+	//kubeConfig, err := clientcmd.BuildConfigFromFlags(apiServerIP, kubeConfigPath)
+	//clientConfig, err := config.GetConfig()
+	//kubeClient, err := kubernetes.NewForConfig(clientConfig)
 	//listOpts.LabelSelector = fmt.Sprintf("kubernetes.io/hostname=%s", d.Hostname)
-	nodes, err := kubeClient.CoreV1().Nodes().List(ctx, listOpts)
+	//nodes, err := kubeClient.CoreV1().Nodes().List(ctx, listOpts)
 	fcExists := d.NodeUtils.IsPathExists(FCPath)
 	if fcExists {
 		fcWWNs, err = d.NodeUtils.ParseFCPorts()
@@ -745,14 +747,14 @@ func (d *NodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 		result += int(runes[i])
 	}
 	zone := fmt.Sprintf("Z%v", result)
-
-	if nodes != nil {
-		logger.Debugf("Nodes : %v", nodes)
-		logger.Debugf("Nodes.Items : %v", nodes.Items)
-		node := nodes.Items[0]
-		logger.Debugf(node.Name)
-		logger.Debugf("%v", node.Labels)
-	}
+	//
+	//if nodes != nil {
+	//	logger.Debugf("Nodes : %v", nodes)
+	//	logger.Debugf("Nodes.Items : %v", nodes.Items)
+	//	node := nodes.Items[0]
+	//	logger.Debugf(node.Name)
+	//	logger.Debugf("%v", node.Labels)
+	//}
 
 	return &csi.NodeGetInfoResponse{
 		NodeId:             nodeId,
