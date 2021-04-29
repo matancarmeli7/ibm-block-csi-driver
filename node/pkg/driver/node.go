@@ -713,7 +713,7 @@ func (d *NodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 	var err error
 	clientConfig, err := config.GetConfig()
 	kubeClient, err := kubernetes.NewForConfig(clientConfig)
-	listOpts.LabelSelector = fmt.Sprintf("kubernetes.io/hostname=%s", d.Hostname)
+	//listOpts.LabelSelector = fmt.Sprintf("kubernetes.io/hostname=%s", d.Hostname)
 	nodes, err := kubeClient.CoreV1().Nodes().List(ctx, listOpts)
 	fcExists := d.NodeUtils.IsPathExists(FCPath)
 	if fcExists {
@@ -739,7 +739,6 @@ func (d *NodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 	}
 
 	logger.Debugf("node id is : %s", nodeId)
-	logger.Debugf("k id is : %s", nodeId)
 	runes := []rune(nodeId)
 	result := 0
 	for i := 0; i < len(runes); i++ {
@@ -748,6 +747,8 @@ func (d *NodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 	zone := fmt.Sprintf("Z%v", result)
 
 	if nodes != nil {
+		logger.Debugf("Nodes : %v", nodes)
+		logger.Debugf("Nodes.Items : %v", nodes.Items)
 		node := nodes.Items[0]
 		logger.Debugf(node.Name)
 		logger.Debugf("%v", node.Labels)
