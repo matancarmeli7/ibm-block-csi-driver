@@ -20,7 +20,7 @@ def _is_topology_match(list_to_look_in_topologies, dict_topologies_to_find_in_th
         logger.debug(
             "Comparing topologies: object topologies: {},"
             " node topologies: {}".format(topologies, dict_topologies_to_find_in_the_list))
-        if topologies == dict_topologies_to_find_in_the_list:
+        if all(item in dict_topologies_to_find_in_the_list.items() for item in topologies.items()):
             is_match = True
     return is_match
 
