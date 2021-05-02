@@ -61,12 +61,20 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
         source_type, source_id = self._get_source_type_and_id(request)
 
         logger.debug("Source {0} id : {1}".format(source_type, source_id))
+
+        topologies = request.accessibility_requirements.preferred[0].segments
+        logger.info("volume topologies: {}".format(topologies))
+
+        secrets = request.secrets
+
         try:
-            secrets = request.secrets
-            user, password, array_addresses = utils.get_array_connection_info_from_secret(secrets)
 
-            pool = request.parameters[config.PARAMETERS_POOL]
-
+            secret = utils.get_secret_by_topologies(secrets=secrets, dict_topologies=topologies)
+            user, password, array_addresses = utils.get_array_connection_info_from_secret(secret)
+            logger.info("chosen array_addresses: {}".format(array_addresses))
+            pools = request.parameters["poolsTopology"]
+            pool = utils.get_pool_by_topologies(pools=pools, dict_topologies=topologies)
+            logger.info("chosen pool: {}".format(pool))
             space_efficiency = request.parameters.get(config.PARAMETERS_SPACE_EFFICIENCY)
 
             # TODO : pass multiple array addresses
@@ -196,10 +204,14 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
         logger.info("DeleteVolume")
         secrets = request.secrets
 
+        topologies = request.accessibility_requirements.preferred[0].segments
+        logger.info("volume topologies: {}".format(topologies))
+
         try:
             utils.validate_delete_volume_request(request)
 
-            user, password, array_addresses = utils.get_array_connection_info_from_secret(secrets)
+            secret = utils.get_secret_by_topologies(secrets=secrets, dict_topologies=topologies)
+            user, password, array_addresses = utils.get_array_connection_info_from_secret(secret)
 
             try:
                 array_type, vol_id = utils.get_volume_id_info(request.volume_id)

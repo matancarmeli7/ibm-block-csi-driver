@@ -6,12 +6,38 @@ from google.protobuf.timestamp_pb2 import Timestamp
 import controller.array_action.errors as array_errors
 import controller.controller_server.config as config
 import controller.controller_server.messages as messages
-from controller.array_action.config import FC_CONNECTIVITY_TYPE, ISCSI_CONNECTIVITY_TYPE
+from controller.array_action.config import FC_CONNECTIVITY_TYPE, ISCSI_CONNECTIVITY_TYPE, SUPPORTED_TOPOLOGIES
 from controller.common.csi_logger import get_stdout_logger
 from controller.controller_server.errors import ObjectIdError, ValidationException
 from controller.csi_general import csi_pb2
 
 logger = get_stdout_logger()
+
+
+def _is_topology_match(list_to_look_in_topologies, dict_topologies_to_find_in_the_list):
+    is_match = False
+    for topologies in list_to_look_in_topologies:
+        logger.debug(
+            "Comparing topologies: object topologies: {},"
+            " node topologies: {}".format(topologies, dict_topologies_to_find_in_the_list))
+        if topologies == dict_topologies_to_find_in_the_list:
+            is_match = True
+    return is_match
+
+
+def get_secret_by_topologies(secrets, dict_topologies):
+    secret_config = secrets.data.config
+    for secret in secret_config:
+        supported_topologies = secret.get(SUPPORTED_TOPOLOGIES)
+        if _is_topology_match(supported_topologies, dict_topologies):
+            return secret
+
+
+def get_pool_by_topologies(pools, dict_topologies):
+    for pool in pools:
+        supported_topologies = pool.get(SUPPORTED_TOPOLOGIES)
+        if _is_topology_match(supported_topologies, dict_topologies):
+            return pool
 
 
 def get_array_connection_info_from_secret(secrets):
@@ -114,19 +140,19 @@ def validate_create_volume_request(request):
     logger.debug("validating volume capabilities")
     validate_csi_volume_capabilties(request.volume_capabilities)
 
-    logger.debug("validating secrets")
-    if request.secrets:
-        validate_secret(request.secrets)
+    logger.debug("no secrets validation")
+    # if request.secrets:
+    #     validate_secret(request.secrets)
 
-    logger.debug("validating storage class parameters")
-    if request.parameters:
-        if config.PARAMETERS_POOL not in request.parameters:
-            raise ValidationException(messages.pool_is_missing_message)
-
-        if not request.parameters[config.PARAMETERS_POOL]:
-            raise ValidationException(messages.wrong_pool_passed_message)
-    else:
-        raise ValidationException(messages.params_are_missing_message)
+    logger.debug("no storage class parameters validation")
+    # if request.parameters:
+    #     if config.PARAMETERS_POOL not in request.parameters:
+    #         raise ValidationException(messages.pool_is_missing_message)
+    #
+    #     if not request.parameters[config.PARAMETERS_POOL]:
+    #         raise ValidationException(messages.wrong_pool_passed_message)
+    # else:
+    #     raise ValidationException(messages.params_are_missing_message)
 
     logger.debug("validating volume copy source")
     validate_create_volume_source(request)

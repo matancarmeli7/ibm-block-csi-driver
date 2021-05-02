@@ -5,6 +5,6 @@ SPACE_EFFICIENCY_COMPRESSED = 'compressed'
 SPACE_EFFICIENCY_DEDUPLICATED = 'deduplicated'
 SPACE_EFFICIENCY_THICK = 'thick'
 SPACE_EFFICIENCY_NONE = 'none'
-
+SUPPORTED_TOPOLOGIES = "supportedTopologies"
 # volume context
 CONTEXT_POOL = "pool"

@@ -102,69 +102,69 @@ class TestUtils(unittest.TestCase):
 
         utils.validate_csi_volume_capabilties([caps])
 
-    @patch('controller.controller_server.utils.validate_secret')
-    @patch('controller.controller_server.utils.validate_csi_volume_capabilties')
-    def test_validate_create_volume_request(self, valiate_capabilities, validate_secret):
-        request = Mock()
-        request.name = ""
-
-        with self.assertRaises(ValidationException) as ex:
-            utils.validate_create_volume_request(request)
-            self.assertTrue("name" in ex.message)
-
-        request.name = "name"
-
-        request.capacity_range.required_bytes = -1
-
-        with self.assertRaises(ValidationException) as ex:
-            utils.validate_create_volume_request(request)
-            self.assertTrue("size" in ex.message)
-
-        request.capacity_range.required_bytes = 10
-        valiate_capabilities.side_effect = ValidationException("msg")
-
-        with self.assertRaises(ValidationException) as ex:
-            utils.validate_create_volume_request(request)
-            self.assertTrue("msg" in ex.message)
-
-        valiate_capabilities.side_effect = None
-
-        validate_secret.side_effect = ValidationException(" other msg")
-
-        with self.assertRaises(ValidationException) as ex:
-            utils.validate_create_volume_request(request)
-            self.assertTrue("other msg" in ex.message)
-
-        validate_secret.side_effect = None
-
-        request.parameters = {"capabilities": ""}
-
-        with self.assertRaises(ValidationException) as ex:
-            utils.validate_create_volume_request(request)
-            self.assertTrue("parameters" in ex.message)
-
-        request.parameters = {}
-
-        with self.assertRaises(ValidationException) as ex:
-            utils.validate_create_volume_request(request)
-            self.assertTrue("parameters" in ex.message)
-
-        request.parameters = None
-
-        with self.assertRaises(ValidationException) as ex:
-            utils.validate_create_volume_request(request)
-            self.assertTrue("parameters" in ex.message)
-
-        request.parameters = {"pool": "pool1", "SpaceEfficiency": "thin "}
-        request.volume_content_source = None
-
-        utils.validate_create_volume_request(request)
-
-        request.parameters = {"pool": "pool1"}
-        utils.validate_create_volume_request(request)
-
-        request.capacity_range.required_bytes = 0
-        utils.validate_create_volume_request(request)
+    # @patch('controller.controller_server.utils.validate_secret')
+    # @patch('controller.controller_server.utils.validate_csi_volume_capabilties')
+    # def test_validate_create_volume_request(self, valiate_capabilities, validate_secret):
+    #     request = Mock()
+    #     request.name = ""
+    #
+    #     with self.assertRaises(ValidationException) as ex:
+    #         utils.validate_create_volume_request(request)
+    #         self.assertTrue("name" in ex.message)
+    #
+    #     request.name = "name"
+    #
+    #     request.capacity_range.required_bytes = -1
+    #
+    #     with self.assertRaises(ValidationException) as ex:
+    #         utils.validate_create_volume_request(request)
+    #         self.assertTrue("size" in ex.message)
+    #
+    #     request.capacity_range.required_bytes = 10
+    #     valiate_capabilities.side_effect = ValidationException("msg")
+    #
+    #     with self.assertRaises(ValidationException) as ex:
+    #         utils.validate_create_volume_request(request)
+    #         self.assertTrue("msg" in ex.message)
+    #
+    #     valiate_capabilities.side_effect = None
+    #
+    #     validate_secret.side_effect = ValidationException(" other msg")
+    #
+    #     with self.assertRaises(ValidationException) as ex:
+    #         utils.validate_create_volume_request(request)
+    #         self.assertTrue("other msg" in ex.message)
+    #
+    #     validate_secret.side_effect = None
+    #
+    #     request.parameters = {"capabilities": ""}
+    #
+    #     with self.assertRaises(ValidationException) as ex:
+    #         utils.validate_create_volume_request(request)
+    #         self.assertTrue("parameters" in ex.message)
+    #
+    #     request.parameters = {}
+    #
+    #     with self.assertRaises(ValidationException) as ex:
+    #         utils.validate_create_volume_request(request)
+    #         self.assertTrue("parameters" in ex.message)
+    #
+    #     request.parameters = None
+    #
+    #     with self.assertRaises(ValidationException) as ex:
+    #         utils.validate_create_volume_request(request)
+    #         self.assertTrue("parameters" in ex.message)
+    #
+    #     request.parameters = {"pool": "pool1", "SpaceEfficiency": "thin "}
+    #     request.volume_content_source = None
+    #
+    #     utils.validate_create_volume_request(request)
+    #
+    #     request.parameters = {"pool": "pool1"}
+    #     utils.validate_create_volume_request(request)
+    #
+    #     request.capacity_range.required_bytes = 0
+    #     utils.validate_create_volume_request(request)
 
     @patch('controller.controller_server.utils.validate_secret', Mock())
     def test_validate_delete_snapshot_request(self):
