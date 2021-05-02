@@ -26,7 +26,7 @@ def _is_topology_match(list_to_look_in_topologies, dict_topologies_to_find_in_th
 
 
 def get_secret_by_topologies(secrets, dict_topologies):
-    secret_config = secrets.data.config
+    secret_config = secrets.config
     for secret in secret_config:
         supported_topologies = secret.get(SUPPORTED_TOPOLOGIES)
         if _is_topology_match(supported_topologies, dict_topologies):
