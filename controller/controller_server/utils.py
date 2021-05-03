@@ -29,17 +29,15 @@ def _is_topology_match(list_to_look_in_topologies, dict_topologies_to_find_in_th
 def get_secret_by_topologies(secrets, dict_topologies):
     secret_config_string = secrets.get(config.SECRET_CONFIG_PARAMETER)
     secret_config = json.loads(secret_config_string)
-    for secret in secret_config:
+    for uuid, secret in secret_config.items():
         supported_topologies = secret.get(SUPPORTED_TOPOLOGIES)
         if _is_topology_match(supported_topologies, dict_topologies):
-            return secret
+            return uuid, secret
 
 
-def get_pool_by_topologies(pools, dict_topologies):
-    for pool in pools:
-        supported_topologies = pool.get(SUPPORTED_TOPOLOGIES)
-        if _is_topology_match(supported_topologies, dict_topologies):
-            return pool
+def get_pool_by_topologies(pools, uuid):
+    pools = json.loads(pools)
+    return pools.get(uuid)
 
 
 def get_array_connection_info_from_secret(secrets):

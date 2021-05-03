@@ -69,11 +69,11 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
 
         try:
 
-            secret = utils.get_secret_by_topologies(secrets=secrets, dict_topologies=topologies)
+            secret_uuid, secret = utils.get_secret_by_topologies(secrets=secrets, dict_topologies=topologies)
             user, password, array_addresses = utils.get_array_connection_info_from_secret(secret)
             logger.info("chosen array_addresses: {}".format(array_addresses))
             pools = request.parameters["poolsTopology"]
-            pool = utils.get_pool_by_topologies(pools=pools, dict_topologies=topologies)
+            pool = utils.get_pool_by_topologies(pools=pools, uuid=secret_uuid)
             logger.info("chosen pool: {}".format(pool))
             space_efficiency = request.parameters.get(config.PARAMETERS_SPACE_EFFICIENCY)
 
