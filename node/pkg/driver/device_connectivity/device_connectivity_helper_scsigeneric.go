@@ -136,7 +136,13 @@ func (r OsDeviceConnectivityHelperScsiGeneric) RescanDevices(lunId int, arrayIde
 func (r OsDeviceConnectivityHelperScsiGeneric) GetMpathDevice(volumeId string) (string, error) {
 	logger.Infof("GetMpathDevice: Searching multipath devices for volume : [%s] ", volumeId)
 
-	volumeUuid := strings.Split(volumeId, VolumeIdDelimiter)[1]
+	volumeIdSplit := strings.Split(volumeId, VolumeIdDelimiter)
+	var volumeUuid string
+	if len(volumeIdSplit) == 2 {
+		volumeUuid = volumeIdSplit[1]
+	} else {
+		volumeUuid = volumeIdSplit[2]
+	}
 	volumeUuidLower := strings.ToLower(volumeUuid)
 
 	dmPath, _ := r.Helper.GetDmsPath(volumeUuidLower)
