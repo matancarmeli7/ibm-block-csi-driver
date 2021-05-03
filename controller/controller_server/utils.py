@@ -35,6 +35,12 @@ def get_secret_by_topologies(secrets, dict_topologies):
             return uuid, secret
 
 
+def get_secret_by_uid(secrets, secret_uid):
+    secret_config_string = secrets.get(config.SECRET_CONFIG_PARAMETER)
+    secret_config = json.loads(secret_config_string)
+    return secret_config.get(secret_uid)
+
+
 def get_pool_by_topologies(pools, uuid):
     pools = json.loads(pools)
     return pools.get(uuid)
@@ -47,15 +53,17 @@ def get_array_connection_info_from_secret(secrets):
     return user, password, array_addresses
 
 
-def get_volume_id(new_volume):
-    return _get_object_id(new_volume)
+def get_volume_id(new_volume, secret_uid):
+    return _get_object_id(new_volume, secret_uid)
 
 
 def get_snapshot_id(new_snapshot):
     return _get_object_id(new_snapshot)
 
 
-def _get_object_id(obj):
+def _get_object_id(obj, secret_uid=None):
+    if secret_uid:
+        return config.PARAMETERS_OBJECT_ID_DELIMITER.join((obj.array_type, secret_uid, obj.id))
     return config.PARAMETERS_OBJECT_ID_DELIMITER.join((obj.array_type, obj.id))
 
 
@@ -202,7 +210,7 @@ def validate_expand_volume_request(request):
     logger.debug("expand volume validation finished")
 
 
-def generate_csi_create_volume_response(new_volume, source_type=None):
+def generate_csi_create_volume_response(new_volume, secret_uid=None, source_type=None):
     logger.debug("creating volume response for volume : {0}".format(new_volume))
 
     volume_context = {"volume_name": new_volume.name,
@@ -223,7 +231,7 @@ def generate_csi_create_volume_response(new_volume, source_type=None):
 
     res = csi_pb2.CreateVolumeResponse(volume=csi_pb2.Volume(
         capacity_bytes=new_volume.capacity_bytes,
-        volume_id=get_volume_id(new_volume),
+        volume_id=get_volume_id(new_volume, secret_uid),
         content_source=content_source,
         volume_context=volume_context))
 
@@ -299,12 +307,15 @@ def get_snapshot_id_info(snapshot_id):
 def get_object_id_info(full_object_id, object_type):
     logger.debug("getting {0} info for id : {1}".format(object_type, full_object_id))
     splitted_object_id = full_object_id.split(config.PARAMETERS_OBJECT_ID_DELIMITER)
-    if len(splitted_object_id) != 2:
+    secret_uid = None
+    if len(splitted_object_id) == 2:
+        array_type, object_id = splitted_object_id
+    elif len(splitted_object_id) == 3:
+        array_type, secret_uid, object_id = splitted_object_id
+    else:
         raise ObjectIdError(object_type, full_object_id)
-
-    array_type, object_id = splitted_object_id
     logger.debug("volume id : {0}, array type :{1}".format(object_id, array_type))
-    return array_type, object_id
+    return array_type, secret_uid, object_id
 
 
 def get_node_id_info(node_id):

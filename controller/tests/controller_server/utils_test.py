@@ -295,9 +295,14 @@ class TestUtils(unittest.TestCase):
             utils.get_volume_id_info("badvolumeformat")
             self.assertTrue("volume" in ex.message)
 
-        arr_type, volume_id = utils.get_volume_id_info("xiv:volume-id")
+        arr_type, secret_uid, volume_id = utils.get_volume_id_info("xiv:u1:volume-id")
         self.assertEqual(arr_type, "xiv")
         self.assertEqual(volume_id, "volume-id")
+        self.assertEqual(secret_uid, "u1")
+        arr_type, secret_uid, volume_id = utils.get_volume_id_info("xiv:volume-id")
+        self.assertEqual(arr_type, "xiv")
+        self.assertEqual(volume_id, "volume-id")
+        self.assertIsNone(secret_uid)
 
     def test_get_node_id_info(self):
         with self.assertRaises(array_errors.HostNotFoundError) as ex:
