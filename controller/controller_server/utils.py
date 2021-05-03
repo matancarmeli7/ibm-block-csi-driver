@@ -67,12 +67,14 @@ def _get_object_id(obj, secret_uid=None):
     return config.PARAMETERS_OBJECT_ID_DELIMITER.join((obj.array_type, obj.id))
 
 
-def validate_secret(secret):
+def validate_secret(secrets):
     logger.debug("validating secrets")
-    if secret:
-        if not (config.SECRET_USERNAME_PARAMETER in secret and
-                config.SECRET_PASSWORD_PARAMETER in secret and
-                config.SECRET_ARRAY_PARAMETER in secret):
+    if secrets:
+        if secrets.get(config.SECRET_CONFIG_PARAMETER):
+            return
+        if not (config.SECRET_USERNAME_PARAMETER in secrets and
+                config.SECRET_PASSWORD_PARAMETER in secrets and
+                config.SECRET_ARRAY_PARAMETER in secrets):
             raise ValidationException(messages.invalid_secret_message)
 
     else:
