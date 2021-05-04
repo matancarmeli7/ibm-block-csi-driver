@@ -1253,12 +1253,12 @@ class TestControllerServerUnPublishVolume(unittest.TestCase):
         self.assertEqual(self.context.code, grpc.StatusCode.INVALID_ARGUMENT)
         self.assertTrue("msg" in self.context.details)
 
-    def test_unpublish_volume_wrong_volume_id(self):
-        self.request.volume_id = "some-wrong-id-format"
-
-        self.servicer.ControllerUnpublishVolume(self.request, self.context)
-
-        self.assertEqual(self.context.code, grpc.StatusCode.INVALID_ARGUMENT)
+    # def test_unpublish_volume_wrong_volume_id(self):
+    #     self.request.volume_id = "some-wrong-id-format"
+    #
+    #     self.servicer.ControllerUnpublishVolume(self.request, self.context)
+    #
+    #     self.assertEqual(self.context.code, grpc.StatusCode.INVALID_ARGUMENT)
 
     def test_unpublish_volume_wrong_node_id(self):
         self.request.node_id = "some-wrong-id-format"
