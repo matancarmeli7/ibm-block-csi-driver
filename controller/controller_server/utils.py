@@ -377,9 +377,9 @@ def generate_csi_publish_volume_response(lun, connectivity_type, config, array_i
 def validate_unpublish_volume_request(request):
     logger.debug("validating unpublish volume request")
 
-    logger.debug("validating volume id")
-    if len(request.volume_id.split(config.PARAMETERS_OBJECT_ID_DELIMITER)) != 2:
-        raise ValidationException(messages.volume_id_wrong_format_message)
+    # logger.debug("validating volume id")
+    # if len(request.volume_id.split(config.PARAMETERS_OBJECT_ID_DELIMITER)) != 2:
+    #     raise ValidationException(messages.volume_id_wrong_format_message)
 
     logger.debug("validating secrets")
     if request.secrets:
