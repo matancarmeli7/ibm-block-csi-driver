@@ -264,31 +264,31 @@ class TestUtils(unittest.TestCase):
 
         utils.validate_publish_volume_request(request)
 
-    @patch('controller.controller_server.utils.validate_secret')
-    def test_validate_unpublish_volume_request(self, validate_secret):
-        request = Mock()
-        request.volume_id = "somebadvolumename"
-
-        with self.assertRaises(ValidationException) as ex:
-            utils.validate_unpublish_volume_request(request)
-            self.assertTrue("volume" in ex.message)
-
-        request.volume_id = "xiv:volume"
-
-        request.secrets = []
-        with self.assertRaises(ValidationException) as ex:
-            utils.validate_unpublish_volume_request(request)
-            self.assertTrue("secret" in ex.message)
-
-        request.secrets = ["secret"]
-        validate_secret.side_effect = [ValidationException("msg2")]
-        with self.assertRaises(ValidationException) as ex:
-            utils.validate_unpublish_volume_request(request)
-            self.assertTrue("msg2" in ex.message)
-
-        validate_secret.side_effect = None
-
-        utils.validate_unpublish_volume_request(request)
+    # @patch('controller.controller_server.utils.validate_secret')
+    # def test_validate_unpublish_volume_request(self, validate_secret):
+    #     request = Mock()
+    #     request.volume_id = "somebadvolumename"
+    #
+    #     with self.assertRaises(ValidationException) as ex:
+    #         utils.validate_unpublish_volume_request(request)
+    #         self.assertTrue("volume" in ex.message)
+    #
+    #     request.volume_id = "xiv:volume"
+    #
+    #     request.secrets = []
+    #     with self.assertRaises(ValidationException) as ex:
+    #         utils.validate_unpublish_volume_request(request)
+    #         self.assertTrue("secret" in ex.message)
+    #
+    #     request.secrets = ["secret"]
+    #     validate_secret.side_effect = [ValidationException("msg2")]
+    #     with self.assertRaises(ValidationException) as ex:
+    #         utils.validate_unpublish_volume_request(request)
+    #         self.assertTrue("msg2" in ex.message)
+    #
+    #     validate_secret.side_effect = None
+    #
+    #     utils.validate_unpublish_volume_request(request)
 
     def test_get_volume_id_info(self):
         with self.assertRaises(ObjectIdError) as ex:
