@@ -41,9 +41,9 @@ def get_secret_by_uid(secrets, secret_uid):
     return secret_config.get(secret_uid)
 
 
-def get_pool_by_topologies(pools, uuid):
+def get_pool_by_uid(pools, uid):
     pools = json.loads(pools)
-    return pools.get(uuid)
+    return pools.get(uid)
 
 
 def get_array_connection_info_from_secret(secrets):

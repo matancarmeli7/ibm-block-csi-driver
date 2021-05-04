@@ -73,7 +73,7 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
             user, password, array_addresses = utils.get_array_connection_info_from_secret(secret)
             logger.info("chosen array_addresses: {}".format(array_addresses))
             pools = request.parameters["poolsTopology"]
-            pool = utils.get_pool_by_topologies(pools=pools, uuid=secret_uid)
+            pool = utils.get_pool_by_uid(pools=pools, uid=secret_uid)
             logger.info("chosen pool: {}".format(pool))
             space_efficiency = request.parameters.get(config.PARAMETERS_SPACE_EFFICIENCY)
 
@@ -204,23 +204,19 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
     def DeleteVolume(self, request, context):
         set_current_thread_name(request.volume_id)
         logger.info("DeleteVolume")
-        secrets = request.secrets
-
-        topologies = request.accessibility_requirements.preferred[0].segments
-        logger.info("volume topologies: {}".format(topologies))
 
         try:
             utils.validate_delete_volume_request(request)
-
-            _, secret = utils.get_secret_by_topologies(secrets=secrets, dict_topologies=topologies)
-            user, password, array_addresses = utils.get_array_connection_info_from_secret(secret)
-
             try:
-                array_type, _, vol_id = utils.get_volume_id_info(request.volume_id)
+                array_type, secret_uid, vol_id = utils.get_volume_id_info(request.volume_id)
             except ObjectIdError as ex:
                 logger.warning("volume id is invalid. error : {}".format(ex))
                 return csi_pb2.DeleteVolumeResponse()
-
+            if secret_uid:
+                secret = utils.get_secret_by_uid(secrets=request.secrets, secret_uid=secret_uid)
+            else:
+                secret = request.secrets
+            user, password, array_addresses = utils.get_array_connection_info_from_secret(secret)
             with get_agent(user, password, array_addresses, array_type).get_mediator() as array_mediator:
                 logger.debug(array_mediator)
 
