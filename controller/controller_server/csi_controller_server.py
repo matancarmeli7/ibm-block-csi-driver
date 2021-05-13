@@ -467,7 +467,7 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
     def DeleteSnapshot(self, request, context):
         set_current_thread_name(request.snapshot_id)
         logger.info("Delete snapshot")
-
+        secrets = request.secrets
         try:
             utils.validate_delete_snapshot_request(request)
             try:

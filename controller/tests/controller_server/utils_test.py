@@ -349,29 +349,29 @@ class TestUtils(unittest.TestCase):
 
         utils.validate_publish_volume_request(request)
 
-    @patch('controller.controller_server.utils.validate_secret')
-    def test_validate_unpublish_volume_request(self, validate_secret):
+    @patch('controller.controller_server.utils.validate_secrets')
+    def test_validate_unpublish_volume_request(self, validate_secrets):
         request = Mock()
         request.volume_id = "somebadvolumename"
 
         with self.assertRaises(ValidationException) as ex:
             utils.validate_unpublish_volume_request(request)
-            self.assertTrue("volume" in ex.message)
+            self.assertTrue("volume" in str(ex))
 
         request.volume_id = "xiv:volume"
 
         request.secrets = []
         with self.assertRaises(ValidationException) as ex:
             utils.validate_unpublish_volume_request(request)
-            self.assertTrue("secret" in ex.message)
+            self.assertTrue("secret" in str(ex))
 
         request.secrets = ["secret"]
-        validate_secret.side_effect = [ValidationException("msg2")]
+        validate_secrets.side_effect = [ValidationException("msg2")]
         with self.assertRaises(ValidationException) as ex:
             utils.validate_unpublish_volume_request(request)
-            self.assertTrue("msg2" in ex.message)
+            self.assertTrue("msg2" in str(ex))
 
-        validate_secret.side_effect = None
+        validate_secrets.side_effect = None
 
         utils.validate_unpublish_volume_request(request)
 
@@ -380,11 +380,11 @@ class TestUtils(unittest.TestCase):
             utils.get_volume_id_info("badvolumeformat")
             self.assertTrue("volume" in str(ex))
 
-        arr_type, secret_uid, volume_id = utils.get_volume_id_info("xiv:u1:volume-id")
+        arr_type, volume_id, secret_uid = utils.get_volume_id_info("xiv:u1:volume-id")
         self.assertEqual(arr_type, "xiv")
         self.assertEqual(volume_id, "volume-id")
         self.assertEqual(secret_uid, "u1")
-        arr_type, secret_uid, volume_id = utils.get_volume_id_info("xiv:volume-id")
+        arr_type, volume_id, secret_uid = utils.get_volume_id_info("xiv:volume-id")
         self.assertEqual(arr_type, "xiv")
         self.assertEqual(volume_id, "volume-id")
         self.assertIsNone(secret_uid)
