@@ -758,7 +758,7 @@ func (d *NodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 
 	return &csi.NodeGetInfoResponse{
 		NodeId:             nodeId,
-		AccessibleTopology: &csi.Topology{Segments: map[string]string{"zone": zone}},
+		AccessibleTopology: &csi.Topology{Segments: map[string]string{"topology.kubernetes.io/dev": zone}},
 	}, nil
 }
 
