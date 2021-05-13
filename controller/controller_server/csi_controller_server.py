@@ -18,6 +18,7 @@ from controller.common.node_info import NodeIdInfo
 from controller.common.utils import set_current_thread_name
 from controller.controller_server.errors import ObjectIdError, ValidationException
 from controller.controller_server.exception_handler import handle_common_exceptions, handle_exception
+from controller.controller_server import messages as controller_messages
 from controller.csi_general import csi_pb2
 from controller.csi_general import csi_pb2_grpc
 
@@ -62,21 +63,20 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
 
         logger.debug("Source {0} id : {1}".format(source_type, source_id))
 
-        topologies = request.accessibility_requirements.preferred[0].segments
-        logger.info("volume topologies: {}".format(topologies))
+        topologies = utils.get_volume_topologies(request)
 
         secrets = request.secrets
 
         try:
 
-            secret_uid, secret = utils.get_secret_by_topologies(secrets=secrets, dict_topologies=topologies)
-            user, password, array_addresses = utils.get_array_connection_info_from_secret(secret)
+            user, password, array_addresses, secret_uid = utils.get_array_connection_info_from_secrets(
+                secrets=secrets,
+                topologies=topologies)
             logger.info("chosen array_addresses: {}".format(array_addresses))
-            pools = request.parameters["poolsTopology"]
-            pool = utils.get_pool_by_uid(pools=pools, uid=secret_uid)
-            logger.info("chosen pool: {}".format(pool))
+            pool = utils.get_pool_from_parameters(parameters=request.parameters, secret_uid=secret_uid)
+            if not pool:
+                raise ValidationException(controller_messages.wrong_pool_passed_message)
             space_efficiency = request.parameters.get(config.PARAMETERS_SPACE_EFFICIENCY)
-
             # TODO : pass multiple array addresses
             array_type = detect_array_type(array_addresses)
             with get_agent(user, password, array_addresses, array_type).get_mediator() as array_mediator:
@@ -101,7 +101,7 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
                 try:
                     volume = array_mediator.get_volume(
                         volume_final_name,
-                        pool_id=pool,
+                        pool=pool,
                     )
                 except array_errors.ObjectNotFoundError:
                     logger.debug(
@@ -204,19 +204,19 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
     def DeleteVolume(self, request, context):
         set_current_thread_name(request.volume_id)
         logger.info("DeleteVolume")
-
+        secrets = request.secrets
         try:
             utils.validate_delete_volume_request(request)
+
             try:
-                array_type, secret_uid, vol_id = utils.get_volume_id_info(request.volume_id)
+                array_type, vol_id, secret_uid = utils.get_volume_id_info(request.volume_id)
             except ObjectIdError as ex:
                 logger.warning("volume id is invalid. error : {}".format(ex))
                 return csi_pb2.DeleteVolumeResponse()
-            if secret_uid:
-                secret = utils.get_secret_by_uid(secrets=request.secrets, secret_uid=secret_uid)
-            else:
-                secret = request.secrets
-            user, password, array_addresses = utils.get_array_connection_info_from_secret(secret)
+
+            user, password, array_addresses, _ = utils.get_array_connection_info_from_secrets(secrets,
+                                                                                              secret_uid=secret_uid)
+
             with get_agent(user, password, array_addresses, array_type).get_mediator() as array_mediator:
                 logger.debug(array_mediator)
 
@@ -263,18 +263,16 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
         try:
             utils.validate_publish_volume_request(request)
 
-            array_type, secret_uid, vol_id = utils.get_volume_id_info(request.volume_id)
+            array_type, vol_id, secret_uid = utils.get_volume_id_info(request.volume_id)
 
             node_id_info = NodeIdInfo(request.node_id)
             node_name = node_id_info.node_name
             initiators = node_id_info.initiators
 
             logger.debug("node name for this publish operation is : {0}".format(node_name))
-            if secret_uid:
-                secret = utils.get_secret_by_uid(secrets=request.secrets, secret_uid=secret_uid)
-            else:
-                secret = request.secrets
-            user, password, array_addresses = utils.get_array_connection_info_from_secret(secret)
+
+            user, password, array_addresses, _ = utils.get_array_connection_info_from_secrets(request.secrets,
+                                                                                              secret_uid=secret_uid)
             with get_agent(user, password, array_addresses, array_type).get_mediator() as array_mediator:
                 lun, connectivity_type, array_initiators = array_mediator.map_volume_by_initiators(vol_id,
                                                                                                    initiators)
@@ -335,17 +333,15 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
                 return csi_pb2.ControllerUnpublishVolumeResponse()
 
-            array_type, secret_uid, vol_id = utils.get_volume_id_info(request.volume_id)
+            array_type, vol_id, secret_uid = utils.get_volume_id_info(request.volume_id)
 
             node_id_info = NodeIdInfo(request.node_id)
             node_name = node_id_info.node_name
             initiators = node_id_info.initiators
             logger.debug("node name for this unpublish operation is : {0}".format(node_name))
-            if secret_uid:
-                secret = utils.get_secret_by_uid(secrets=request.secrets, secret_uid=secret_uid)
-            else:
-                secret = request.secrets
-            user, password, array_addresses = utils.get_array_connection_info_from_secret(secret)
+
+            user, password, array_addresses, _ = utils.get_array_connection_info_from_secrets(request.secrets,
+                                                                                              secret_uid=secret_uid)
 
             with get_agent(user, password, array_addresses, array_type).get_mediator() as array_mediator:
                 array_mediator.unmap_volume_by_initiators(vol_id, initiators)
@@ -403,45 +399,49 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             return csi_pb2.CreateSnapshotResponse()
 
-        pool = request.parameters.get(config.PARAMETERS_POOL)
         source_volume_id = request.source_volume_id
         logger.info("Snapshot base name : {}. Source volume id : {}".format(request.name, source_volume_id))
         secrets = request.secrets
-        user, password, array_addresses = utils.get_array_connection_info_from_secret(secrets)
         try:
-            _, _, vol_id = utils.get_volume_id_info(source_volume_id)
+            _, volume_id, secret_uid = utils.get_volume_id_info(source_volume_id)
+            user, password, array_addresses, secret_uid = utils.get_array_connection_info_from_secrets(
+                secrets,
+                secret_uid=secret_uid)
+            pool = utils.get_pool_from_parameters(parameters=request.parameters, secret_uid=secret_uid)
+
             array_type = detect_array_type(array_addresses)
             with get_agent(user, password, array_addresses, array_type).get_mediator() as array_mediator:
                 logger.debug(array_mediator)
                 snapshot_final_name = self._get_snapshot_final_name(request, array_mediator)
 
-                volume_name = array_mediator.get_volume_name(vol_id)
-                logger.info("Snapshot name : {}. Volume name : {}".format(snapshot_final_name, volume_name))
+                logger.info("Snapshot name : {}. Volume id : {}".format(snapshot_final_name, volume_id))
                 snapshot = array_mediator.get_snapshot(
+                    volume_id,
                     snapshot_final_name,
-                    pool_id=pool
+                    pool=pool
                 )
 
                 if snapshot:
-                    if snapshot.volume_name != volume_name:
+                    if snapshot.source_volume_id != volume_id:
                         context.set_details(
-                            messages.SnapshotWrongVolumeError_message.format(snapshot_final_name, snapshot.volume_name,
-                                                                             volume_name))
+                            messages.SnapshotWrongVolumeError_message.format(snapshot_final_name,
+                                                                             snapshot.source_volume_id,
+                                                                             volume_id))
                         context.set_code(grpc.StatusCode.ALREADY_EXISTS)
                         return csi_pb2.CreateSnapshotResponse()
                 else:
                     logger.debug(
                         "Snapshot doesn't exist. Creating a new snapshot {0} from volume {1}".format(
                             snapshot_final_name,
-                            volume_name))
-                    snapshot = array_mediator.create_snapshot(snapshot_final_name, volume_name, pool)
+                            volume_id))
+                    snapshot = array_mediator.create_snapshot(volume_id, snapshot_final_name, pool)
 
                 logger.debug("generating create snapshot response")
                 res = utils.generate_csi_create_snapshot_response(snapshot, source_volume_id)
                 logger.info("finished create snapshot")
                 return res
         except (array_errors.IllegalObjectName, array_errors.IllegalObjectID,
-                array_errors.PoolParameterIsMissing) as ex:
+                array_errors.SnapshotSourcePoolMismatch) as ex:
             context.set_details(ex.message)
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             return csi_pb2.CreateSnapshotResponse()
@@ -471,15 +471,13 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
         try:
             utils.validate_delete_snapshot_request(request)
             try:
-                array_type, secret_uid, snapshot_id = utils.get_snapshot_id_info(request.snapshot_id)
+                array_type, snapshot_id, secret_uid = utils.get_snapshot_id_info(request.snapshot_id)
             except ObjectIdError as ex:
                 logger.warning("Snapshot id is invalid. error : {}".format(ex))
                 return csi_pb2.DeleteSnapshotResponse()
-            if secret_uid:
-                secret = utils.get_secret_by_uid(secrets=request.secrets, secret_uid=secret_uid)
-            else:
-                secret = request.secrets
-            user, password, array_addresses = utils.get_array_connection_info_from_secret(secret)
+
+            user, password, array_addresses, _ = utils.get_array_connection_info_from_secrets(secrets,
+                                                                                              secret_uid=secret_uid)
             array_type = detect_array_type(array_addresses)
             with get_agent(user, password, array_addresses, array_type).get_mediator() as array_mediator:
                 logger.debug(array_mediator)
@@ -534,17 +532,15 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
             utils.validate_expand_volume_request(request)
 
             try:
-                array_type, secret_uid, volume_id = utils.get_volume_id_info(request.volume_id)
+                array_type, volume_id, secret_uid = utils.get_volume_id_info(request.volume_id)
             except ObjectIdError as ex:
                 logger.warning("volume id is invalid. error : {}".format(ex))
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
                 return csi_pb2.ControllerExpandVolumeResponse()
 
-            if secret_uid:
-                secret = utils.get_secret_by_uid(secrets=secrets, secret_uid=secret_uid)
-            else:
-                secret = secrets
-            user, password, array_addresses = utils.get_array_connection_info_from_secret(secret)
+            user, password, array_addresses, _ = utils.get_array_connection_info_from_secrets(secrets,
+                                                                                              secret_uid=secret_uid)
+
             with get_agent(user, password, array_addresses, array_type).get_mediator() as array_mediator:
                 logger.debug(array_mediator)
 
@@ -756,7 +752,7 @@ class ControllerServicer(csi_pb2_grpc.ControllerServicer):
                 source_type = config.VOLUME_TYPE_NAME
             else:
                 return None, None
-            _, _, object_id = utils.get_object_id_info(source_id, source_type)
+            _, object_id, _ = utils.get_object_id_info(source_id, source_type)
         return source_type, object_id
 
 
