@@ -8,7 +8,7 @@ on:
     branches:
       - develop
       - master
-#jobs:
+jobs:
 #  prepare_env:
 #   name: "prepare env"
 #   runs-on: ubuntu-latest
@@ -144,11 +144,6 @@ on:
         with:
           path: driver
       - uses: FranzDiebold/github-env-vars-action@v2
-      - name: Retrieve ci dependencies
-        uses: actions/download-artifact@v2
-        with:
-          name: ci-dependencies
-          path: /home/runner
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
