@@ -8,32 +8,32 @@ on:
     branches:
       - develop
       - master
-jobs:
-  prepare_env:
-   name: "prepare env"
-   runs-on: ubuntu-latest
-   steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - name: Setup dependencies
-        run: |
-          scripts/ci/setup_ci_dependencies.sh
-      - uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('dev-requirements.txt') }}
-      - name: Save dependencies files
-        uses: actions/upload-artifact@v2
-        with:
-          name: ci-dependencies
-          path: |
-            /home/runner/.bash_profile
-          retention-days: 1
-      - uses: FranzDiebold/github-env-vars-action@v2
+#jobs:
+#  prepare_env:
+#   name: "prepare env"
+#   runs-on: ubuntu-latest
+#   steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v2
+#      - name: Set up Python
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: '3.x'
+#      - name: Setup dependencies
+#        run: |
+#          scripts/ci/setup_ci_dependencies.sh
+#      - uses: actions/cache@v2
+#        with:
+#          path: ${{ env.pythonLocation }}
+#          key: ${{ env.pythonLocation }}-${{ hashFiles('dev-requirements.txt') }}
+#      - name: Save dependencies files
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: ci-dependencies
+#          path: |
+#            /home/runner/.bash_profile
+#          retention-days: 1
+#      - uses: FranzDiebold/github-env-vars-action@v2
 #  CSI-controller-static_code_analysis:
 #    runs-on: ubuntu-latest
 #    steps:
