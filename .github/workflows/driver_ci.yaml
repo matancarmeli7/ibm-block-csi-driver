@@ -152,12 +152,12 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('dev-requirements.txt') }}
-      - name: Get the operator github branch
-        id: operator_github_branch
-        run: |
-          driver/scripts/ci/get_operator_github_branch.sh
-        env:
-          github_token: ${{ secrets.CSIBLOCK_GITHUB_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          repository: IBM/ibm-block-csi-operator
+          ref: develop
+          path: operator
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
      #- name: Create k8s Kind Cluster
